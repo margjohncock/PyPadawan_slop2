@@ -1,0 +1,129 @@
+schema_version: 1
+id: molyso
+title: Molyso — understand an existing results table
+revision: 9ee9eaef5751e6e53c2673b62c94c8ddf5df692e
+url: https://github.com/modsim/molyso
+example: examples/Example_Analysis.ipynb
+fingerprints:
+  README.rst: 32da98339c4a35ae3ae6745ef559e5d92fa62e56bf082be35d10d2c2f6b7217b
+  docs/Example_Analysis.rst: efb36ffc95b3edd35b6e034b4e76ad04d6c6c1898e0bae16dc19a587f9c7d55c
+  examples/Example_Analysis.ipynb: 57d512f192150f3a1ec5835fe695f7d2711872cff3e6d6b2ea455d33766e300c
+  setup.py: ac440e9159bc80efb489975a861eda48c5d1de593c191a1eec221d1da6226640
+sections:
+  purpose:
+  - text: 'Molyso analyses time-lapse microscopy of bacteria in Mother Machine channels. This first task starts
+      after image processing: read an existing results table and understand the plots. It does not detect or track
+      cells again.'
+    anchors:
+    - path: examples/Example_Analysis.ipynb
+      contains: post-process
+      cell: 1
+  inputs:
+  - text: Use the supplied MM_Cglutamicum_D_aceE_results.tsv from the full upstream examples folder. The rows describe
+      tracked cells at observation times. The notebook documents length in micrometres, timepoint in seconds and
+      cell age in hours. Your own table needs matching meanings, not just matching headers.
+    anchors:
+    - path: examples/Example_Analysis.ipynb
+      contains: cell_age
+      cell: 1
+    - path: docs/Example_Analysis.rst
+      contains: length
+  reading:
+  - text: Read the table description, the setup cell and the data-reading cell before the plots. This five-step
+      route follows the results-analysis task rather than the package debugging imports.
+    anchors:
+    - path: examples/Example_Analysis.ipynb
+      contains: Example Analysis
+      cell: 1
+  processing:
+  - text: The notebook loads the TSV into a pandas table and uses cell identity and observation times to build plots.
+      Read each transformation in context; saved cell order does not establish a completed run.
+    anchors:
+    - path: examples/Example_Analysis.ipynb
+      contains: read_table
+      cell: 4
+  - text: Later cells use the legacy pandas.rolling_mean API. Treat this as a compatibility issue requiring review;
+      installing the latest pandas is not an established solution.
+    anchors:
+    - path: examples/Example_Analysis.ipynb
+      contains: rolling_mean
+      cell: 12
+  running:
+  - text: First inspect supplied results without installing Molyso itself. To reproduce the original notebook, follow
+      its environment requirements and resolve the legacy pandas calls separately. For raw-image processing, the
+      author recommends Conda; that is a different task with image-reader and calibration requirements.
+    anchors:
+    - path: README.rst
+      contains: conda
+    - path: examples/Example_Analysis.ipynb
+      contains: rolling_mean
+      cell: 12
+  success:
+  - text: 'First checkpoint: the table opens with the documented columns and the expected units can be identified.
+      Notebook figures are examples to compare with, not proof that new measurements are scientifically valid. Image
+      segmentation and tracking require visual checks in a separate workflow.'
+    anchors:
+    - path: examples/Example_Analysis.ipynb
+      contains: Column name
+      cell: 1
+  settings:
+  - text: For this results-only task, begin with the notebook file_name value. Image acquisition interval, pixel
+      calibration and image-processing tunables belong to the earlier image-analysis stage; changing them cannot
+      correct an already produced table.
+    anchors:
+    - path: examples/Example_Analysis.ipynb
+      contains: file_name
+      cell: 2
+    - path: README.rst
+      contains: calibration
+route:
+- path: examples/Example_Analysis.ipynb
+  contains: Example Analysis
+  cell: 1
+  role: 1. Read the author’s table description and units.
+- path: examples/Example_Analysis.ipynb
+  contains: import
+  cell: 3
+  role: 2. Read imports and display setup; magics are shown but never executed.
+- path: examples/Example_Analysis.ipynb
+  contains: read_table
+  cell: 4
+  role: 3. Find the selected input path and table-reading operation.
+- path: examples/Example_Analysis.ipynb
+  contains: pylab.scatter
+  cell: 6
+  role: 4. Read the first plotting example against its input columns.
+- path: examples/Example_Analysis.ipynb
+  contains: rolling_mean
+  cell: 12
+  role: 5. Identify the legacy smoothing operation before trying the full notebook.
+recipe:
+  status: Source-reviewed orientation task. Original notebook execution is unverified and has a known legacy API
+    requiring review.
+  prerequisites: Use a full upstream source copy and its supplied TSV. The bundled test snapshot deliberately omits
+    the large results table and raw images. This recipe previews a header using Python’s standard library; it does
+    not reproduce notebook figures.
+  windows:
+  - command: 'Get-Location
+
+      Get-ChildItem'
+    cwd: The examples folder in your full Molyso copy
+    explanation: Confirm Example_Analysis.ipynb and MM_Cglutamicum_D_aceE_results.tsv are present.
+  - command: python -c "import csv; f=open('MM_Cglutamicum_D_aceE_results.tsv', newline=''); print(next(csv.reader(f,
+      delimiter='\t')))"
+    cwd: examples
+    explanation: PyPadawan-authored header preview. Reads the first TSV row; it does not import or run Molyso.
+  posix:
+  - command: 'pwd
+
+      ls'
+    cwd: The examples folder in your full Molyso copy
+    explanation: Confirm the notebook and supplied TSV are present.
+  - command: python3 -c "import csv; f=open('MM_Cglutamicum_D_aceE_results.tsv', newline=''); print(next(csv.reader(f,
+      delimiter='\t')))"
+    cwd: examples
+    explanation: PyPadawan-authored standard-library header preview; no Molyso installation is needed.
+  checkpoints:
+  - Compare printed column names with the notebook table description.
+  - Identify length, timepoint and cell_age and explain their units before changing data.
+  - Do not treat this orientation task as successful execution of the original notebook.

@@ -1,0 +1,127 @@
+schema_version: 1
+id: ef_python
+title: Ef — understand a single-particle simulation
+revision: 47b751bcada2af7fc50cef587a48b1a3c12bcbba
+url: https://github.com/epicf/ef_python
+example: src/ef/main.py
+fingerprints:
+  README.md: 365dfea6603b3b0769e2bafb406c15f1a99113005b70cc79c8c76d95cddc8753
+  examples/single_particle_in_free_space/plot.py: 87985835694229fb86a51ccc4b2e320be2120c193c948dc7aef7826bc4d1f2aa
+  examples/single_particle_in_free_space/run_example.sh: d8d8e88c1396ce9a59001eba0ee0856aee9f715fe0113bca0a747bb539347b9b
+  examples/single_particle_in_free_space/single_particle_in_free_space.conf: 090e39fdd097a4d009d1914047f2a5dba9dd3d159a5c888f880d95dbbc9c5027
+  requirements.txt: ca65a1c16eff32af12b5e9f738de0bc53e324dad64c29356f0a20804efd74101
+  setup.py: c15aee37b95deae6280d92884aeefdb83880511b28b426e63963294ef2a42c91
+  src/ef/config/config.py: b85dd06ef2e74c2cc6ba6d1667b24b53c3d9a5e669ac97d69a34701bab06c016
+  src/ef/main.py: 7fef2051ced7e489780a42e37f4010941146108f5e6897f1b8df9c45cc573da3
+sections:
+  purpose:
+  - text: 'Ef simulates charged-particle motion. Follow the supplied single-particle-in-free-space example: configuration
+      defines the initial particle and simulation, HDF5 files store states and a plotting script compares numerical
+      and analytical trajectories.'
+    anchors:
+    - path: README.md
+      contains: charged
+    - path: examples/single_particle_in_free_space/plot.py
+      contains: an_trajectory
+  inputs:
+  - text: This example generates simulated data. Its .conf file supplies the time grid, mesh, particle properties
+      and interaction model. You do not need a measured CSV. Configuration numbers must use the author’s unit conventions;
+      do not assume SI from the numeric values.
+    anchors:
+    - path: examples/single_particle_in_free_space/single_particle_in_free_space.conf
+      contains: '[TimeGrid]'
+    - path: examples/single_particle_in_free_space/single_particle_in_free_space.conf
+      contains: '[ParticleSourceBox.emit_single_particle]'
+  reading:
+  - text: Start with the configuration and command mapping, then inspect how the program constructs a simulation
+      and how plot.py reads its files. The plotting stage is a separate action.
+    anchors:
+    - path: setup.py
+      contains: ef = ef.main:main
+    - path: examples/single_particle_in_free_space/plot.py
+      contains: find_necessary_out_files
+  processing:
+  - text: ef.main selects between starting from configuration and continuing from HDF5. The example plot searches
+      for single_particle_free_space_*.h5, reads time, position and momentum, and compares numerical values with
+      an analytical trajectory.
+    anchors:
+    - path: src/ef/main.py
+      contains: if extension == "h5"
+    - path: examples/single_particle_in_free_space/plot.py
+      contains: single_particle_free_space_
+    - path: examples/single_particle_in_free_space/plot.py
+      contains: eval_an_trajectory_at_num_time_points
+  running:
+  - text: The supplied run_example.sh references ../../main.py, which is absent from the inspected revision. setup.py
+      declares the ef command instead. Use the documented installed-command route after resolving environment questions;
+      do not copy the stale script unchanged.
+    anchors:
+    - path: examples/single_particle_in_free_space/run_example.sh
+      contains: ../../main.py
+    - path: setup.py
+      contains: ef = ef.main:main
+  - text: requirements.txt constrains sympy<1.3, whereas setup.py lists sympy without a version limit. Keep both
+      declarations visible and resolve them before promising a working environment.
+    anchors:
+    - path: requirements.txt
+      contains: sympy<1.3
+    - path: setup.py
+      contains: '''sympy'''
+  success:
+  - text: The configuration names output files single_particle_free_space_*.h5. plot.py expects those files in its
+      working directory and compares trajectories. This comparison is useful for this example; it is not a validation
+      of arbitrary particle simulations.
+    anchors:
+    - path: examples/single_particle_in_free_space/single_particle_in_free_space.conf
+      contains: output_filename_prefix
+    - path: examples/single_particle_in_free_space/plot.py
+      contains: an_trajectory
+  settings:
+  - text: The example supplies total_time=6.0e-9 and time_step_size=6.0e-12; these are example values, not universal
+      defaults. It sets particle_interaction_model=noninteracting. Explain these choices before changing mesh resolution,
+      time step or interactions.
+    anchors:
+    - path: examples/single_particle_in_free_space/single_particle_in_free_space.conf
+      contains: total_time = 6.0e-9
+    - path: examples/single_particle_in_free_space/single_particle_in_free_space.conf
+      contains: particle_interaction_model = noninteracting
+route:
+- path: examples/single_particle_in_free_space/single_particle_in_free_space.conf
+  contains: '[TimeGrid]'
+  role: 1. Read the supplied simulation settings and particle properties.
+- path: setup.py
+  contains: ef = ef.main:main
+  role: 2. Locate the installed terminal command.
+- path: src/ef/main.py
+  contains: def construct_domain
+  role: 3. Distinguish a new simulation from a resumed run.
+- path: src/ef/config/config.py
+  contains: def make(self)
+  role: 4. Follow configuration into simulation construction.
+- path: examples/single_particle_in_free_space/plot.py
+  contains: def main()
+  role: 5. Read the separate output-to-trajectory comparison.
+recipe:
+  status: Source-reviewed two-stage recipe; environment installation and simulation execution unverified.
+  prerequisites: Install Ef in a separate environment using the author’s instructions. Resolve the differing SymPy
+    declarations first. Use a full source copy containing the example. Units require the author’s scientific documentation.
+  windows:
+  - command: ef single_particle_in_free_space.conf
+    cwd: examples/single_particle_in_free_space
+    explanation: Documented ef command applied to the supplied configuration. Creates simulation snapshots; do not
+      use the stale ../../main.py script.
+  - command: python plot.py
+    cwd: The same example folder, with generated HDF5 files
+    explanation: Runs the separate plotting stage using the research environment’s Python. PyPadawan displays this
+      command only.
+  posix:
+  - command: ef single_particle_in_free_space.conf
+    cwd: examples/single_particle_in_free_space
+    explanation: Starts a new simulation from configuration; passing an HDF5 snapshot instead resumes a simulation.
+  - command: python3 plot.py
+    cwd: The same example folder, with generated HDF5 files
+    explanation: Compares numerical and analytical trajectories. Use the Python belonging to the Ef environment.
+  checkpoints:
+  - Check HDF5 names begin single_particle_free_space_ and are in the plotting folder.
+  - Compare numerical and analytical trajectories, rather than only checking that a plot appears.
+  - Record the input configuration and environment when comparing later runs.

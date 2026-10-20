@@ -1,0 +1,34 @@
+# Python caches and environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.tox/
+.nox/
+
+# Build and package output
+build/
+dist/
+wheels/
+*.egg-info/
+
+# Test, lint and notebook output
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+.ipynb_checkpoints/
+
+# Local secrets and generated logs
+.env
+.env.*
+.pypirc
+.streamlit/secrets.toml
+*.log
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db

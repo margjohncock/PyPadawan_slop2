@@ -1,0 +1,6 @@
+* text=auto
+*.py text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+# Preserve upstream regression snapshot bytes except normal platform line endings.
+tests/fixtures/** -text

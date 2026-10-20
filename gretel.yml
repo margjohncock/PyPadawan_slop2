@@ -1,0 +1,123 @@
+schema_version: 1
+id: gretel
+title: Gretel — follow one prepared genomic region
+revision: eb1041aad4756ef61aa2442f9af13ee4c2f5372d
+url: https://github.com/SamStudio8/gretel
+example: gretel/cmd.py
+fingerprints:
+  README.md: 1aab8f8e3c1cf3e60c60d4da1d2f3c4c2c7e6a5d1a69b50d392cd2aaddd82189
+  docs/protocol.rst: 3d7686069620bcd9bc6aca1905c5b7fe9b5ce9be0ea37ac52350abb6e0162397
+  gretel/cmd.py: 7be909c83d49a41df3020157f808fbeb55cf78ce14fd9fe55bab67d45f8ddda8
+  setup.py: 4389abfe0955c733134f5eb631d15b1025953728f1e107bc52b1778e24f6e2ff
+sections:
+  purpose:
+  - text: Gretel reconstructs candidate haplotypes from metagenomic sequencing evidence. Start with one genomic
+      region and understand how prepared alignment and variant files lead to sequences. It does not perform the
+      complete raw-read preparation pipeline for you.
+    anchors:
+    - path: docs/protocol.rst
+      contains: recovery of haplotypes
+  inputs:
+  - text: Prepare reads aligned to a common reference, then sort and index the BAM. The VCF must be bgzip-compressed
+      and tabix-indexed. You also need the contig name and region. BAM/VCF index files are companion inputs; a filename
+      ending .gz alone does not establish readiness.
+    anchors:
+    - path: docs/protocol.rst
+      contains: Sort and index
+    - path: docs/protocol.rst
+      contains: compressed and indexed VCF
+  - text: Start and end are documented as 1-indexed, inclusive coordinates. Compare the selected contig name across
+      inputs. PyPadawan does not inspect binary alignment contents or verify coordinate consistency.
+    anchors:
+    - path: gretel/cmd.py
+      contains: 1-indexed included start
+    - path: gretel/cmd.py
+      contains: 1-indexed inlcuded end
+  reading:
+  - text: Begin with the protocol and installed command, then follow the command’s preparation and prediction calls.
+      The tests/data directory contains small fixtures; these are not automatically a scientifically representative
+      example.
+    anchors:
+    - path: docs/protocol.rst
+      contains: Invocation of Gretel
+    - path: setup.py
+      contains: gretel=gretel.cmd:main
+  processing:
+  - text: The command processes the VCF, builds a Hansel evidence matrix from aligned reads, generates candidate
+      paths and reweights evidence. These are source relationships; data-dependent iterations and biological validity
+      are not established by static inspection.
+    anchors:
+    - path: gretel/cmd.py
+      contains: util.process_vcf
+    - path: gretel/cmd.py
+      contains: util.load_from_bam
+    - path: gretel/cmd.py
+      contains: gretel.generate_path
+  - text: One failure condition is missing pairwise evidence between neighbouring SNPs. The source explains why
+      an entire genome may be an unsuitable recovery window; a short relevant region is a clearer starting task.
+    anchors:
+    - path: gretel/cmd.py
+      contains: Gretel needs every SNP
+  running:
+  - text: Install Gretel in its own research environment, following the author’s pip or Bioconda route. The package
+      pins hanselx==0.0.92. bgzip and tabix are external preparation tools, not PyPadawan dependencies. No current
+      environment has been independently verified for this walkthrough.
+    anchors:
+    - path: setup.py
+      contains: hanselx==0.0.92
+    - path: docs/protocol.rst
+      contains: bgzip
+  success:
+  - text: The protocol documents out.fasta for recovered sequences and gretel.crumbs for recovery metadata. The
+      source additionally opens snp.fasta. A file being produced does not demonstrate a correct biological reconstruction;
+      use a suitable known example for that comparison.
+    anchors:
+    - path: docs/protocol.rst
+      contains: out.fasta
+    - path: docs/protocol.rst
+      contains: gretel.crumbs
+    - path: gretel/cmd.py
+      contains: snp.fasta
+  settings:
+  - text: Begin with contig, start/end and output directory. --paths has a literal default of 100. --master supplies
+      a reference sequence for filling positions between SNPs; omitting it changes the interpretation of the sequence
+      output. Keep debugging options collapsed until needed.
+    anchors:
+    - path: gretel/cmd.py
+      contains: --paths
+    - path: docs/protocol.rst
+      contains: master
+route:
+- path: docs/protocol.rst
+  contains: Read Alignment
+  role: 1. Understand preparation outside Gretel.
+- path: setup.py
+  contains: gretel=gretel.cmd:main
+  role: 2. Connect the terminal command to gretel.cmd.main.
+- path: gretel/cmd.py
+  contains: parser.add_argument("bam")
+  role: 3. Read required inputs and coordinate options.
+- path: gretel/cmd.py
+  contains: util.process_vcf
+  role: 4. Follow variant preparation into evidence loading and prediction.
+- path: docs/protocol.rst
+  contains: Gretel Outputs
+  role: 5. Read the meaning of the output files before interpreting them.
+recipe:
+  status: Source-reviewed command template; environment and numerical results unverified.
+  prerequisites: A separate Gretel installation plus prepared BAM/VCF and their indexes. Choose a region with appropriate
+    evidence. Replace every placeholder; PyPadawan has not established valid values for your data.
+  windows:
+  - command: gretel "reads.sort.bam" "variants.vcf.gz" CONTIG -s START -e END -o "results"
+    cwd: A chosen run folder containing your prepared inputs; create results first
+    explanation: Documented command shape. CONTIG, START and END are placeholders, not ready-to-run values. Native
+      Windows dependency availability is unverified; use an author-supported environment.
+  posix:
+  - command: gretel reads.sort.bam variants.vcf.gz CONTIG -s START -e END -o results
+    cwd: A chosen run folder containing prepared inputs; create results first
+    explanation: Select one region; -s and -e specify its inclusive 1-based coordinates, and -o selects the output
+      folder.
+  checkpoints:
+  - Ensure the required indexes exist; presence alone does not verify their content.
+  - Compare out.fasta and gretel.crumbs with the protocol descriptions.
+  - Use an independently known example to assess scientific correctness.

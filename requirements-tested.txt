@@ -1,0 +1,8 @@
+# Direct runtime versions used for local Windows / Python 3.14 verification.
+# This records a tested set, not a full cross-platform dependency lock.
+streamlit==1.66.0
+packaging==26.3
+PyYAML==6.0.3
+markdown-it-py==4.2.0
+docutils==0.22.4
+nbformat==5.11.1
